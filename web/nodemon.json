@@ -1,0 +1,13 @@
+{
+  "verbose": true,
+  "watch": [
+    "views/*.templ",
+    "**/rust-wasm-jpg-analyzer/web/*.go",
+    "**/rust-wasm-jpg-analyzer/web/scripts/*.js"
+  ],
+  "ignore": ["views/*.go"],
+  "ext": "templ,go,js",
+  "exec": "make run",
+  "signal": "SIGTERM",
+  "delay": 2
+}

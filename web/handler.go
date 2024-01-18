@@ -2,42 +2,30 @@ package main
 
 import (
 	"fmt"
-	"html/template"
+	"log"
 	"net/http"
+	"os"
+	"stephanrotolante/rust-wasm-jpg-analyzer/web/views"
 )
 
-type Cat struct {
-	Name     string
-	Cuteness int
-}
+func BaseHandler(w http.ResponseWriter, r *http.Request) {
 
-func (cat Cat) Speak() {
-	fmt.Println("Meow")
-}
-
-type Cats []Cat
-
-type Data struct {
-	CatList Cats
-}
-
-func BaseHandler(writer http.ResponseWriter, request *http.Request) {
-
-	templateFile := template.Must(template.ParseFiles("html/index.html"))
-
-	cats := Cats{
-		Cat{
-			Name:     "Indy",
-			Cuteness: 100,
-		},
-		Cat{
-			Name:     "GramPam",
-			Cuteness: 9000,
-		},
+	fileUploadScript, err := os.ReadFile("scripts/fileUpload.js")
+	if err != nil {
+		log.Fatalf("unable to read file: %v", err)
+		views.Error().Render(r.Context(), w)
+		return
 	}
 
-	templateFile.Execute(writer, Data{
-		CatList: cats,
-	})
+	wasmTestScript, err := os.ReadFile("scripts/wasmTest.js")
+	if err != nil {
+		log.Fatalf("unable to read file: %v", err)
+		views.Error().Render(r.Context(), w)
+		return
+	}
 
+	views.Index([]string{
+		fmt.Sprintf("<script type=\"text/javascript\">%s</script>", string(fileUploadScript)),
+		fmt.Sprintf("<script type=\"text/javascript\">%s</script>", string(wasmTestScript)),
+	}).Render(r.Context(), w)
 }

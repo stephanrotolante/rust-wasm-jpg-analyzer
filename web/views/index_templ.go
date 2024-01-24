@@ -29,7 +29,7 @@ func Index(scripts []string) templ.Component {
 				templ_7745c5c3_Buffer = templ.GetBuffer()
 				defer templ.ReleaseBuffer(templ_7745c5c3_Buffer)
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div><input type=\"file\" id=\"jpg_file_uploader\" name=\"jpg_file_uploader\" accept=\"image/jpeg\"></div>")
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div class=\"h-full flex flex-row justify-center items-center\" style=\"background: linear-gradient(to bottom, rgba(225,255,255,1) 0%,rgba(225,255,255,1) 9%,rgba(225,255,255,1) 17%,rgba(230,248,253,1) 30%,rgba(200,238,251,1) 54%,rgba(190,228,248,1) 75%,rgba(177,216,245,1) 100%);\"><div><canvas id=\"myCanvas\" width=\"600\" height=\"600\" style=\"border:1px solid #000;\"></canvas><input type=\"file\" id=\"jpg_file_uploader\" name=\"jpg_file_uploader\" accept=\"image/jpeg\"></div></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

@@ -32,20 +32,11 @@ fn clamp(num: i64) -> u8 {
 }
 pub fn convert_color(y: i64, cb: i64, cr: i64) -> [u8; 3] {
     let r = (y as f64 + cr as f64 * 1.402) as i64;
-    let g = (y as f64 + 0.344 * cb as f64 - 0.714 * cr as f64) as i64;
+    let g = (y as f64 - 0.344 * cb as f64 - 0.714 * cr as f64) as i64;
     let b = (y as f64 + 1.772 * cb as f64) as i64;
 
     [clamp(r + 128), clamp(g + 128), clamp(b + 128)]
 }
-
-// func ColorConvert(Y, Cb, Cr int) (int, int, int) {
-
-// 	R := int(float64(Y)+(float64(Cr)*1.402)) + 128
-// 	G := int(float64(Y)-(0.344*float64(Cb))-(0.714*float64(Cr))) + 128
-// 	B := int(float64(Y)+(1.772*float64(Cb))) + 128
-
-// 	return Clamp(R), Clamp(G), Clamp(B)
-// }
 
 pub fn create_u16(num1: u8, num2: u8) -> u16 {
     let mut new_u16_int: u16 = 0x0000;
@@ -59,7 +50,7 @@ pub fn create_u16(num1: u8, num2: u8) -> u16 {
 
 fn fn_of_a(input: usize) -> f32 {
     if input == 0 {
-        return (1.0 / (2.0 as f32).sqrt());
+        return 1.0 / (2.0 as f32).sqrt();
     }
 
     1.0

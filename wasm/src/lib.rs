@@ -5,8 +5,6 @@ mod huffman_table;
 mod jpeg;
 mod utils;
 
-use std::f64::consts::PI;
-
 use component::Component;
 use console_log::*;
 use data_reader::DataReader;
@@ -41,25 +39,6 @@ pub fn decode(data: Vec<u8>) {
         .unwrap()
         .dyn_into::<web_sys::CanvasRenderingContext2d>()
         .unwrap();
-
-    // context.begin_path();
-
-    // // Draw the outer circle.
-    // context.arc(75.0, 75.0, 50.0, 0.0, PI * 2.0).unwrap();
-
-    // // Draw the mouth.
-    // context.move_to(110.0, 75.0);
-    // context.arc(75.0, 75.0, 35.0, 0.0, PI).unwrap();
-
-    // // Draw the left eye.
-    // context.move_to(65.0, 65.0);
-    // context.arc(60.0, 65.0, 5.0, 0.0, PI * 2.0).unwrap();
-
-    // // Draw the right eye.
-    // context.move_to(95.0, 65.0);
-    // context.arc(90.0, 65.0, 5.0, 0.0, PI * 2.0).unwrap();
-
-    // context.stroke();
 
     let mut data_clone = data.clone();
     log("This is the size");
@@ -138,7 +117,9 @@ pub fn decode(data: Vec<u8>) {
                     let sliced_data = &mut data_clone[0..(segment_length - 2) as usize].to_vec();
                     data_clone.drain(..(segment_length - 2) as usize);
 
-                    log(&format!("Luminance/Chrominance {}", sliced_data.remove(0)));
+                    let table_id = sliced_data.remove(0);
+
+                    log(&format!("Luminance/Chrominance {}", table_id));
 
                     let mut new_q_table: [u8; 64] = [0; 64];
                     for i in 0..8 {
@@ -147,7 +128,7 @@ pub fn decode(data: Vec<u8>) {
                         }
                     }
 
-                    jpeg_data.quantize_tables.push(new_q_table);
+                    jpeg_data.quantize_tables[table_id as usize] = new_q_table;
                     log("***********");
                 }
                 // Start of Frame
@@ -345,7 +326,7 @@ pub fn decode(data: Vec<u8>) {
 
                         let coeff = get_coeff(&mut reader, coeff_length);
 
-                        let q_value = jpeg_data
+                        let q_value: u8 = jpeg_data
                             .quantize_tables
                             .get(component.get_quantize_id() as usize)
                             .unwrap()[index as usize];
@@ -366,15 +347,16 @@ pub fn decode(data: Vec<u8>) {
     let mut y = 0;
     let mut x = 0;
 
-    for mcu_index in (0..jpeg_data.mcus.len() / 2).step_by(jpeg_data.components.len()) {
+    for mcu_index in (0..jpeg_data.mcus.len()).step_by(jpeg_data.components.len()) {
         y = (mcu_index / 3) as i64 / (jpeg_data.width / 8);
         x = (mcu_index / 3) as i64 % (jpeg_data.width / 8);
+
         for i in 0..jpeg_data.components.len() {
-            let temp_data = jpeg_data.mcus.get_mut(i).unwrap().clone();
+            let temp_data = jpeg_data.mcus.get(mcu_index + i).unwrap().clone();
 
             for y in 0..8 {
                 for x in 0..8 {
-                    let mut sum = 0.0;
+                    let mut sum: f64 = 0.0;
                     for n in 0..8 {
                         for m in 0..8 {
                             sum += (temp_data[n * 8 + m] as f64)
@@ -383,7 +365,7 @@ pub fn decode(data: Vec<u8>) {
                         }
                     }
 
-                    jpeg_data.mcus.get_mut(i).unwrap()[y * 8 + x] = (sum / 4.0) as i64;
+                    jpeg_data.mcus.get_mut(mcu_index + i).unwrap()[y * 8 + x] = (sum / 4.0) as i64;
                 }
             }
         }
@@ -391,14 +373,12 @@ pub fn decode(data: Vec<u8>) {
         for yy in 0..8 {
             for xx in 0..8 {
                 let colors = convert_color(
-                    jpeg_data.mcus.get(0).unwrap()[8 * yy + xx],
-                    jpeg_data.mcus.get(1).unwrap()[8 * yy + xx],
-                    jpeg_data.mcus.get(2).unwrap()[8 * yy + xx],
+                    jpeg_data.mcus.get(mcu_index).unwrap()[8 * yy + xx],
+                    jpeg_data.mcus.get(mcu_index + 1).unwrap()[8 * yy + xx],
+                    jpeg_data.mcus.get(mcu_index + 2).unwrap()[8 * yy + xx],
                 );
                 let y_pos: i64 = y * 8 + yy as i64;
                 let x_pos = x * 8 + xx as i64;
-
-                // log(&format!("rgb({}, {}, {})", colors[0], colors[1], colors[2]));
                 context.set_fill_style(&JsValue::from_str(&format!(
                     "rgb({}, {}, {})",
                     colors[0], colors[1], colors[2]
@@ -407,6 +387,4 @@ pub fn decode(data: Vec<u8>) {
             }
         }
     }
-
-    log(&format!("We are finished {}", jpeg_data.mcus.len()));
 }
